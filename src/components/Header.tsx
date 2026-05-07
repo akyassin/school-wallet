@@ -5,6 +5,7 @@ import { useTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { LogOut, Menu, Sun, Moon } from "lucide-react";
+import { ROLE_LABELS, type AppRole } from "@/lib/roles";
 import ledgerLogo from "@/assets/school-wallet-logo.svg";
 
 function ThemeToggle({ className }: { className?: string }) {
@@ -68,6 +69,12 @@ export function Header() {
                 </Link>
               ))}
               <ThemeToggle className="ml-1" />
+              <div className="ml-2 mr-1 pl-3 border-l border-border text-right hidden lg:block">
+                <p className="text-xs font-medium leading-tight truncate max-w-[160px]">{user.email}</p>
+                <p className="text-xs text-muted-foreground leading-tight">
+                  {ROLE_LABELS[user.role as AppRole] ?? user.role}
+                </p>
+              </div>
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-1">
                 <LogOut className="h-4 w-4 mr-1.5" />
                 Sign out
@@ -87,7 +94,13 @@ export function Header() {
                 <SheetHeader>
                   <SheetTitle className="font-display">Menu</SheetTitle>
                 </SheetHeader>
-                <nav className="mt-6 flex flex-col gap-1">
+                <div className="mt-4 px-3 py-2.5 rounded-lg bg-secondary/60">
+                  <p className="text-sm font-medium truncate">{user.email}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {ROLE_LABELS[user.role as AppRole] ?? user.role}
+                  </p>
+                </div>
+                <nav className="mt-3 flex flex-col gap-1">
                   {navLinks.map((l) => (
                     <Link
                       key={l.to}

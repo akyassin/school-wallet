@@ -6,6 +6,14 @@ function userId(token: string): string {
   return verifyToken(token).sub;
 }
 
+function requireWriter(token: string): string {
+  const payload = verifyToken(token);
+  if (payload.role !== 'super_admin' && payload.role !== 'admin') {
+    throw new Error('You do not have permission to perform this action');
+  }
+  return payload.sub;
+}
+
 export const listBudgetsFn = createServerFn({ method: 'GET' })
   .inputValidator(
     (data: { token: string; period: 'monthly' | 'yearly'; year: number; month?: number }) => data,
@@ -62,7 +70,7 @@ export const upsertBudgetFn = createServerFn({ method: 'POST' })
     }) => data,
   )
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     const month = data.month ?? null;
     const { rows: existing } = await pool.query(
       `SELECT id FROM budgets
@@ -84,6 +92,6 @@ export const upsertBudgetFn = createServerFn({ method: 'POST' })
 export const deleteBudgetFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { token: string; id: string }) => data)
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     await pool.query('DELETE FROM budgets WHERE id=$1 AND user_id=$2', [data.id, uid]);
   });

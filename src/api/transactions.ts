@@ -6,6 +6,14 @@ function userId(token: string): string {
   return verifyToken(token).sub;
 }
 
+function requireWriter(token: string): string {
+  const payload = verifyToken(token);
+  if (payload.role !== 'super_admin' && payload.role !== 'admin') {
+    throw new Error('You do not have permission to perform this action');
+  }
+  return payload.sub;
+}
+
 export const listTransactionsFn = createServerFn({ method: 'GET' })
   .inputValidator((data: { token: string }) => data)
   .handler(async ({ data }) => {
@@ -76,7 +84,7 @@ export const createTransactionFn = createServerFn({ method: 'POST' })
     }) => data,
   )
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     await pool.query(
       `INSERT INTO transactions (user_id, type, amount, category, description, transaction_date, receipt_data, receipt_name)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -101,7 +109,7 @@ export const updateTransactionFn = createServerFn({ method: 'POST' })
     }) => data,
   )
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     if (data.receipt_data !== undefined || data.clear_receipt) {
       await pool.query(
         `UPDATE transactions
@@ -126,6 +134,6 @@ export const updateTransactionFn = createServerFn({ method: 'POST' })
 export const deleteTransactionFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { token: string; id: string }) => data)
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     await pool.query('DELETE FROM transactions WHERE id=$1 AND user_id=$2', [data.id, uid]);
   });

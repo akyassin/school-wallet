@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { TransactionForm } from "@/components/TransactionForm";
 import { CategoryManager } from "@/components/CategoryManager";
 import { formatMoney } from "@/lib/format";
+import { canWrite } from "@/lib/roles";
 import { TrendingUp, TrendingDown, Wallet, ArrowRight } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -30,8 +31,9 @@ interface Tx {
 }
 
 function Dashboard() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = canWrite(user?.role);
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,10 +94,12 @@ function Dashboard() {
             <h1 className="text-4xl md:text-5xl font-display font-semibold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground mt-2">An overview of your school's finances.</p>
           </div>
-          <div className="flex gap-2">
-            <CategoryManager />
-            <TransactionForm onSaved={load} />
-          </div>
+          {isAdmin && (
+            <div className="flex gap-2">
+              <CategoryManager />
+              <TransactionForm onSaved={load} />
+            </div>
+          )}
         </div>
 
         <div className="grid md:grid-cols-3 gap-4 mb-8">

@@ -6,6 +6,14 @@ function userId(token: string): string {
   return verifyToken(token).sub;
 }
 
+function requireWriter(token: string): string {
+  const payload = verifyToken(token);
+  if (payload.role !== 'super_admin' && payload.role !== 'admin') {
+    throw new Error('You do not have permission to perform this action');
+  }
+  return payload.sub;
+}
+
 function advanceDate(date: Date, frequency: string): Date {
   const next = new Date(date);
   if (frequency === 'weekly') next.setDate(next.getDate() + 7);
@@ -53,7 +61,7 @@ export const createRecurringFn = createServerFn({ method: 'POST' })
     }) => data,
   )
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     await pool.query(
       `INSERT INTO recurring_transactions
          (user_id, type, amount, category, description, frequency, start_date, next_due_date)
@@ -65,7 +73,7 @@ export const createRecurringFn = createServerFn({ method: 'POST' })
 export const toggleRecurringFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { token: string; id: string; active: boolean }) => data)
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     await pool.query(
       'UPDATE recurring_transactions SET active=$1 WHERE id=$2 AND user_id=$3',
       [data.active, data.id, uid],
@@ -75,7 +83,7 @@ export const toggleRecurringFn = createServerFn({ method: 'POST' })
 export const deleteRecurringFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { token: string; id: string }) => data)
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     await pool.query(
       'DELETE FROM recurring_transactions WHERE id=$1 AND user_id=$2',
       [data.id, uid],
@@ -85,7 +93,7 @@ export const deleteRecurringFn = createServerFn({ method: 'POST' })
 export const applyDueRecurringFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { token: string }) => data)
   .handler(async ({ data }) => {
-    const uid = userId(data.token);
+    const uid = requireWriter(data.token);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const { rows } = await pool.query(
