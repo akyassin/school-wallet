@@ -4,6 +4,7 @@ export interface AppUser {
   id: string;
   email: string;
   role: string;
+  must_change_password?: boolean;
 }
 
 interface AuthCtx {
@@ -12,6 +13,7 @@ interface AuthCtx {
   loading: boolean;
   signIn: (token: string, user: AppUser) => void;
   signOut: () => void;
+  updateUser: (patch: Partial<AppUser>) => void;
 }
 
 const Ctx = createContext<AuthCtx>({
@@ -20,6 +22,7 @@ const Ctx = createContext<AuthCtx>({
   loading: true,
   signIn: () => {},
   signOut: () => {},
+  updateUser: () => {},
 });
 
 const TOKEN_KEY = "auth_token";
@@ -59,7 +62,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  return <Ctx.Provider value={{ user, token, loading, signIn, signOut }}>{children}</Ctx.Provider>;
+  const updateUser = (patch: Partial<AppUser>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...patch };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  return (
+    <Ctx.Provider value={{ user, token, loading, signIn, signOut, updateUser }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export const useAuth = () => useContext(Ctx);

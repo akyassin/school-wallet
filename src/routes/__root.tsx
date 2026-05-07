@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
+import { ForcePasswordChange } from "@/components/ForcePasswordChange";
 
 import appCss from "../styles.css?url";
 
@@ -77,6 +78,7 @@ function RootComponent() {
     <ThemeProvider>
       <AuthProvider>
         <Outlet />
+        <ForcePasswordChange />
         <Toaster richColors position="top-right" />
       </AuthProvider>
     </ThemeProvider>

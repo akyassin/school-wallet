@@ -9,9 +9,12 @@ CREATE TABLE IF NOT EXISTS users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role          VARCHAR(20) NOT NULL DEFAULT 'reviewer',
-  active        BOOLEAN NOT NULL DEFAULT true,
-  created_at    TIMESTAMPTZ DEFAULT NOW()
+  role                VARCHAR(20) NOT NULL DEFAULT 'reviewer',
+  active              BOOLEAN NOT NULL DEFAULT true,
+  approved            BOOLEAN NOT NULL DEFAULT false,
+  reset_requested     BOOLEAN NOT NULL DEFAULT false,
+  must_change_password BOOLEAN NOT NULL DEFAULT false,
+  created_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
@@ -74,3 +77,8 @@ CREATE INDEX IF NOT EXISTS idx_recurring_user_due
 -- ALTER TABLE transactions ADD COLUMN IF NOT EXISTS receipt_data TEXT;
 -- ALTER TABLE transactions ADD COLUMN IF NOT EXISTS receipt_name TEXT;
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN NOT NULL DEFAULT false;
+-- UPDATE users SET approved = true; -- approve all pre-existing accounts
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_requested BOOLEAN NOT NULL DEFAULT false;
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false;
+-- UPDATE users SET approved = true, role = 'super_admin' WHERE email = 'your@email.com'; -- bootstrap first super_admin

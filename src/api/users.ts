@@ -15,9 +15,13 @@ export const listUsersFn = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     requireSuperAdmin(data.token);
     const { rows } = await pool.query(
-      "SELECT id, email, role, active, created_at FROM users ORDER BY created_at ASC",
+      "SELECT id, email, role, active, approved, reset_requested, must_change_password, created_at FROM users ORDER BY created_at ASC",
     );
-    return rows as { id: string; email: string; role: string; active: boolean; created_at: string }[];
+    return rows as {
+      id: string; email: string; role: string; active: boolean;
+      approved: boolean; reset_requested: boolean; must_change_password: boolean;
+      created_at: string;
+    }[];
   });
 
 export const updateUserRoleFn = createServerFn({ method: "POST" })
@@ -44,7 +48,21 @@ export const resetUserPasswordFn = createServerFn({ method: "POST" })
     requireSuperAdmin(data.token);
     if (data.newPassword.length < 8) throw new Error("Password must be at least 8 characters");
     const hash = await hashPassword(data.newPassword);
-    await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [hash, data.userId]);
+    await pool.query(
+      "UPDATE users SET password_hash = $1, must_change_password = true, reset_requested = false WHERE id = $2",
+      [hash, data.userId],
+    );
+  });
+
+export const approveUserFn = createServerFn({ method: "POST" })
+  .inputValidator((data: { token: string; userId: string; role: string }) => data)
+  .handler(async ({ data }) => {
+    requireSuperAdmin(data.token);
+    if (!VALID_ROLES.includes(data.role)) throw new Error("Invalid role");
+    await pool.query(
+      "UPDATE users SET approved = true, role = $1 WHERE id = $2",
+      [data.role, data.userId],
+    );
   });
 
 export const deleteUserFn = createServerFn({ method: "POST" })
