@@ -6,4 +6,19 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig({ cloudflare: false });
+export default defineConfig({
+  cloudflare: false,
+  vite: {
+    environments: {
+      ssr: {
+        build: {
+          rollupOptions: {
+            // Force output to dist/server/index.js so the Node.js wrapper
+            // can import it by a stable path regardless of entry filename.
+            input: { index: "virtual:tanstack-start-server-entry" },
+          },
+        },
+      },
+    },
+  },
+});
