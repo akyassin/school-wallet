@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Projects\\\\quran-school-finances\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(bun add *)",
+      "Bash(bun remove *)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)",
+      "Bash(Remove-Item *)",
+      "Bash(node -e \"const p = require\\('./node_modules/@tanstack/react-start/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(node -e \"const { createServerFn } = require\\('./node_modules/@tanstack/react-start'\\); const fn = createServerFn\\({ method: 'GET' }\\); console.log\\(Object.keys\\(Object.getPrototypeOf\\(fn\\) || fn\\)\\)\")",
+      "Bash(node -e \"const m = require\\('./node_modules/@tanstack/start-server-core/dist/cjs/index.cjs'\\); const fn = m.createServerFn\\({ method: 'GET' }\\); console.log\\(typeof fn.validator, typeof fn.handler, Object.keys\\(fn\\)\\)\")",
+      "Bash(node --input-type=module -e \"import { createServerFn } from './node_modules/@tanstack/start-server-core/dist/esm/index.js'; const fn = createServerFn\\({ method: 'GET' }\\); console.log\\(typeof fn.validator, typeof fn.handler\\)\")",
+      "Bash(node --input-type=module -e \"import m from './node_modules/@tanstack/start-fn-stubs/dist/esm/index.js'; console.log\\(Object.keys\\(m\\)\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(xargs basename -a)",
+      "Bash(grep -r \"^[[:space:]]*//.*\\\\\\(function\\\\|const\\\\|export\\\\|import\\\\|interface\\\\|type\\\\\\)\" \"D:/alhuda-center/quran-school-finances/src\" --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -rn \"^[[:space:]]*//.*\" \"D:/alhuda-center/quran-school-finances/src/routes\" --include=\"*.tsx\")",
+      "Bash(grep -v \"^.*:.*//.*eslint\\\\|//.*TODO\\\\|//.*FIXME\\\\|//.*NOTE\")",
+      "Bash(cat)",
+      "Bash(chmod +x /tmp/check_ui.sh)",
+      "Bash(/tmp/check_ui.sh)",
+      "Bash(chmod +x /tmp/final_check.sh)",
+      "Bash(/tmp/final_check.sh)",
+      "Bash(git rm *)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}
