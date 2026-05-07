@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCategories } from "@/lib/use-categories";
 import { formatMoney, formatDate } from "@/lib/format";
+import { canWrite } from "@/lib/roles";
 import { Plus, Trash2, RefreshCw, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,7 +42,7 @@ const FREQ_LABEL: Record<string, string> = { weekly: "Weekly", monthly: "Monthly
 function RecurringPage() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = canWrite(user?.role);
 
   const [items, setItems] = useState<Recurring[]>([]);
   const [loading, setLoading] = useState(true);

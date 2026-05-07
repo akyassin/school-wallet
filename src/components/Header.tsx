@@ -33,6 +33,7 @@ export function Header() {
     { to: "/budgets", label: "Budgets" },
     { to: "/recurring", label: "Recurring" },
     { to: "/reports", label: "Reports" },
+    ...(user?.role === "super_admin" ? [{ to: "/users", label: "Users" } as const] : []),
   ] as const;
 
   const handleSignOut = async () => {

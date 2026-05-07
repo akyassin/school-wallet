@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCategories } from "@/lib/use-categories";
 import { formatMoney } from "@/lib/format";
+import { canWrite } from "@/lib/roles";
 import { Plus, Trash2, Target } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,7 +41,7 @@ const MONTHS = [
 function BudgetsPage() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = canWrite(user?.role);
   const now = new Date();
 
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");

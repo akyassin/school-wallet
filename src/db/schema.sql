@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role          VARCHAR(20) NOT NULL DEFAULT 'admin',
+  role          VARCHAR(20) NOT NULL DEFAULT 'reviewer',
+  active        BOOLEAN NOT NULL DEFAULT true,
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -72,3 +73,4 @@ CREATE INDEX IF NOT EXISTS idx_recurring_user_due
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'admin';
 -- ALTER TABLE transactions ADD COLUMN IF NOT EXISTS receipt_data TEXT;
 -- ALTER TABLE transactions ADD COLUMN IF NOT EXISTS receipt_name TEXT;
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatMoney, formatDate } from "@/lib/format";
+import { canWrite } from "@/lib/roles";
 import { Pencil, Trash2, Download, FileText, Search, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
@@ -35,7 +36,7 @@ interface Tx {
 function TxPage() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = canWrite(user?.role);
 
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
