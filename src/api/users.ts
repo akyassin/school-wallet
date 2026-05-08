@@ -72,3 +72,13 @@ export const deleteUserFn = createServerFn({ method: "POST" })
     if (caller.sub === data.userId) throw new Error("Cannot delete your own account");
     await pool.query("DELETE FROM users WHERE id = $1", [data.userId]);
   });
+
+export const getPendingCountFn = createServerFn({ method: "GET" })
+  .inputValidator((data: { token: string }) => data)
+  .handler(async ({ data }) => {
+    requireSuperAdmin(data.token);
+    const { rows } = await pool.query(
+      "SELECT COUNT(*) FROM users WHERE approved = false OR reset_requested = true",
+    );
+    return { count: parseInt(rows[0].count, 10) };
+  });

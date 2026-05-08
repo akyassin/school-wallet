@@ -10,6 +10,7 @@ import {
   approveUserFn,
 } from "@/api/users";
 import { Header } from "@/components/Header";
+import { PENDING_COUNT_REFRESH_EVENT } from "@/lib/use-pending-count";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -97,6 +98,7 @@ function UsersPage() {
     try {
       await approveUserFn({ data: { token: t, userId, role } });
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, approved: true, role } : u)));
+      window.dispatchEvent(new CustomEvent(PENDING_COUNT_REFRESH_EVENT));
       toast.success("User approved");
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to approve user");
@@ -142,6 +144,7 @@ function UsersPage() {
             : u,
         ),
       );
+      window.dispatchEvent(new CustomEvent(PENDING_COUNT_REFRESH_EVENT));
       toast.success("Temporary password set. User will be prompted to choose a new password on next login.");
       setResetTarget(null);
       setNewPassword("");
@@ -158,6 +161,7 @@ function UsersPage() {
     try {
       await deleteUserFn({ data: { token: t, userId } });
       setUsers((prev) => prev.filter((u) => u.id !== userId));
+      window.dispatchEvent(new CustomEvent(PENDING_COUNT_REFRESH_EVENT));
       toast.success("User deleted");
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to delete user");

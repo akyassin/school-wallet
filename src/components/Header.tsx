@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { LogOut, Menu, Sun, Moon } from "lucide-react";
 import { ROLE_LABELS, type AppRole } from "@/lib/roles";
+import { usePendingCount } from "@/lib/use-pending-count";
 import ledgerLogo from "@/assets/school-wallet-logo.svg";
 
 function ThemeToggle({ className }: { className?: string }) {
@@ -27,6 +28,7 @@ export function Header() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const pendingCount = usePendingCount();
 
   const navLinks = [
     { to: "/dashboard", label: "Dashboard" },
@@ -58,16 +60,25 @@ export function Header() {
           <>
             {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-1">
-              {navLinks.map((l) => (
-                <Link
-                  key={l.to}
-                  to={l.to}
-                  className="px-3 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
-                  activeProps={{ className: "px-3 py-2 text-sm rounded-md bg-secondary font-medium" }}
-                >
-                  {l.label}
-                </Link>
-              ))}
+              {navLinks.map((l) => {
+                const showBadge = l.to === "/users" && pendingCount > 0;
+                return (
+                  <div key={l.to} className="relative">
+                    <Link
+                      to={l.to}
+                      className="px-3 py-2 text-sm rounded-md hover:bg-secondary transition-colors"
+                      activeProps={{ className: "px-3 py-2 text-sm rounded-md bg-secondary font-medium" }}
+                    >
+                      {l.label}
+                    </Link>
+                    {showBadge && (
+                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center pointer-events-none">
+                        {pendingCount > 9 ? "9+" : pendingCount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
               <ThemeToggle className="ml-1" />
               <div className="ml-2 mr-1 pl-3 border-l border-border text-right hidden lg:block">
                 <p className="text-xs font-medium leading-tight truncate max-w-[160px]">{user.email}</p>
@@ -86,8 +97,13 @@ export function Header() {
               <ThemeToggle />
               <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Open menu">
+                  <Button variant="ghost" size="icon" aria-label="Open menu" className="relative">
                     <Menu className="h-5 w-5" />
+                    {pendingCount > 0 && (
+                      <span className="absolute top-1 right-1 min-w-[14px] h-3.5 px-0.5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center pointer-events-none">
+                        {pendingCount > 9 ? "9+" : pendingCount}
+                      </span>
+                    )}
                   </Button>
                 </SheetTrigger>
               <SheetContent side="right" className="w-72">
@@ -101,17 +117,26 @@ export function Header() {
                   </p>
                 </div>
                 <nav className="mt-3 flex flex-col gap-1">
-                  {navLinks.map((l) => (
-                    <Link
-                      key={l.to}
-                      to={l.to}
-                      onClick={() => setOpen(false)}
-                      className="px-3 py-2.5 text-base rounded-md hover:bg-secondary transition-colors"
-                      activeProps={{ className: "px-3 py-2.5 text-base rounded-md bg-secondary font-medium" }}
-                    >
-                      {l.label}
-                    </Link>
-                  ))}
+                  {navLinks.map((l) => {
+                    const showBadge = l.to === "/users" && pendingCount > 0;
+                    return (
+                      <div key={l.to} className="relative">
+                        <Link
+                          to={l.to}
+                          onClick={() => setOpen(false)}
+                          className="flex items-center justify-between px-3 py-2.5 text-base rounded-md hover:bg-secondary transition-colors"
+                          activeProps={{ className: "flex items-center justify-between px-3 py-2.5 text-base rounded-md bg-secondary font-medium" }}
+                        >
+                          {l.label}
+                          {showBadge && (
+                            <span className="ml-2 min-w-[20px] h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center justify-center">
+                              {pendingCount > 9 ? "9+" : pendingCount}
+                            </span>
+                          )}
+                        </Link>
+                      </div>
+                    );
+                  })}
                   <Button variant="ghost" onClick={handleSignOut} className="mt-2 justify-start">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign out
