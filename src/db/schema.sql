@@ -82,3 +82,27 @@ CREATE INDEX IF NOT EXISTS idx_recurring_user_due
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_requested BOOLEAN NOT NULL DEFAULT false;
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false;
 -- UPDATE users SET approved = true, role = 'super_admin' WHERE email = 'your@email.com'; -- bootstrap first super_admin
+
+-- Migration: manageable system-default categories (user_id = NULL means global default)
+-- ALTER TABLE categories ALTER COLUMN user_id DROP NOT NULL;
+-- ALTER TABLE categories DROP CONSTRAINT IF EXISTS categories_user_id_name_type_key;
+-- CREATE UNIQUE INDEX IF NOT EXISTS categories_global_name_type ON categories (name, type) WHERE user_id IS NULL;
+-- CREATE UNIQUE INDEX IF NOT EXISTS categories_user_name_type ON categories (user_id, name, type) WHERE user_id IS NOT NULL;
+-- INSERT INTO categories (user_id, name, type) VALUES
+--   (NULL, 'Tuition fees', 'income'),
+--   (NULL, 'Donations', 'income'),
+--   (NULL, 'Zakat', 'income'),
+--   (NULL, 'Sadaqah', 'income'),
+--   (NULL, 'Fundraising', 'income'),
+--   (NULL, 'Book sales', 'income'),
+--   (NULL, 'Other income', 'income'),
+--   (NULL, 'Salaries', 'expense'),
+--   (NULL, 'Rent', 'expense'),
+--   (NULL, 'Utilities', 'expense'),
+--   (NULL, 'Books & supplies', 'expense'),
+--   (NULL, 'Maintenance', 'expense'),
+--   (NULL, 'Food & refreshments', 'expense'),
+--   (NULL, 'Transport', 'expense'),
+--   (NULL, 'Events', 'expense'),
+--   (NULL, 'Other expense', 'expense')
+-- ON CONFLICT DO NOTHING;
