@@ -30,7 +30,7 @@ export const listRecurringFn = createServerFn({ method: 'GET' })
     const uid = userId(data.token);
     const { rows } = await pool.query(
       `SELECT id, type, amount::float AS amount, category, description,
-              frequency, start_date, next_due_date, active
+              frequency, start_date::text AS start_date, next_due_date::text AS next_due_date, active
        FROM recurring_transactions WHERE user_id=$1
        ORDER BY active DESC, next_due_date ASC`,
       [uid],

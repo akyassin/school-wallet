@@ -19,7 +19,7 @@ export const listTransactionsFn = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const uid = userId(data.token);
     const { rows } = await pool.query(
-      `SELECT id, type, amount, category, description, transaction_date,
+      `SELECT id, type, amount, category, description, transaction_date::text AS transaction_date,
               (receipt_name IS NOT NULL) AS has_receipt
        FROM transactions WHERE user_id = $1
        ORDER BY transaction_date DESC`,
@@ -41,7 +41,7 @@ export const listTransactionsByRangeFn = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const uid = userId(data.token);
     const { rows } = await pool.query(
-      `SELECT id, type, amount, category, description, transaction_date,
+      `SELECT id, type, amount, category, description, transaction_date::text AS transaction_date,
               (receipt_name IS NOT NULL) AS has_receipt
        FROM transactions WHERE user_id = $1
          AND transaction_date >= $2 AND transaction_date <= $3

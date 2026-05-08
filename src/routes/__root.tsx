@@ -79,7 +79,7 @@ function RootComponent() {
       <AuthProvider>
         <Outlet />
         <ForcePasswordChange />
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="bottom-right" />
       </AuthProvider>
     </ThemeProvider>
   );
