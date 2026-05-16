@@ -4,6 +4,8 @@ import { useAuth } from "@/lib/auth-context";
 import {
   listRecurringFn, createRecurringFn, toggleRecurringFn, deleteRecurringFn, applyDueRecurringFn,
 } from "@/api/recurring";
+import { isTokenExpired } from "@/lib/token-utils";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +22,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/recurring")({
   beforeLoad: () => {
     if (typeof window === "undefined") return;
-    if (!localStorage.getItem("auth_token")) throw redirect({ to: "/login" });
+    const token = localStorage.getItem("auth_token");
+    const refresh = localStorage.getItem("auth_refresh_token");
+    if (!token || (isTokenExpired(token) && !refresh)) {
+      throw redirect({ to: "/login", search: { from: window.location.pathname } } as any);
+    }
   },
   component: RecurringPage,
 });
@@ -48,6 +54,8 @@ function RecurringPage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     const t = token ?? localStorage.getItem("auth_token");
@@ -94,10 +102,11 @@ function RecurringPage() {
     }
   };
 
-  const remove = async (id: string) => {
-    if (!confirm("Delete this recurring transaction?")) return;
+  const remove = async () => {
+    if (!deleteId) return;
     const t = token ?? localStorage.getItem("auth_token");
     if (!t) return;
+    const id = deleteId;
     try {
       await deleteRecurringFn({ data: { token: t, id } });
       toast.success("Deleted");
@@ -213,7 +222,7 @@ function RecurringPage() {
                         </td>
                         {isAdmin && (
                           <td className="px-4 py-3">
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => remove(r.id)}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { setDeleteId(r.id); setDeleteOpen(true); }}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </td>
@@ -227,6 +236,14 @@ function RecurringPage() {
           </div>
         )}
       </main>
+
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={remove}
+        title="Delete recurring transaction?"
+        description="This action cannot be undone."
+      />
     </div>
   );
 }

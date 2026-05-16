@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useCategories, type UserCategory } from "@/lib/use-categories";
 import { createCategoryFn, updateCategoryFn, deleteCategoryFn } from "@/api/categories";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,8 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const isSuperAdmin = user?.role === "super_admin";
 
@@ -87,9 +90,11 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
     }
   };
 
-  const remove = async (id: string) => {
+  const remove = async () => {
+    if (!deleteId) return;
     const t = getToken();
     if (!t) return;
+    const id = deleteId;
     try {
       await deleteCategoryFn({ data: { token: t, id } });
       toast.success("Removed");
@@ -98,6 +103,8 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
       toast.error(err instanceof Error ? err.message : "Failed to remove category");
     }
   };
+
+  const openDelete = (id: string) => { setDeleteId(id); setDeleteOpen(true); };
 
   const incomeDefaults = defaults.filter((c) => c.type === "income");
   const expenseDefaults = defaults.filter((c) => c.type === "expense");
@@ -179,7 +186,7 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
                   onStartEdit={startEdit}
                   onSaveEdit={saveEdit}
                   onCancelEdit={cancelEdit}
-                  onRemove={remove}
+                  onRemove={openDelete}
                   canEdit
                 />
                 <CategoryList
@@ -192,7 +199,7 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
                   onStartEdit={startEdit}
                   onSaveEdit={saveEdit}
                   onCancelEdit={cancelEdit}
-                  onRemove={remove}
+                  onRemove={openDelete}
                   canEdit
                 />
               </div>
@@ -216,7 +223,7 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
                     onStartEdit={startEdit}
                     onSaveEdit={saveEdit}
                     onCancelEdit={cancelEdit}
-                    onRemove={remove}
+                    onRemove={openDelete}
                     canEdit
                   />
                   <CategoryList
@@ -229,7 +236,7 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
                     onStartEdit={startEdit}
                     onSaveEdit={saveEdit}
                     onCancelEdit={cancelEdit}
-                    onRemove={remove}
+                    onRemove={openDelete}
                     canEdit
                   />
                 </div>
@@ -246,6 +253,14 @@ export function CategoryManager({ trigger }: { trigger?: React.ReactNode }) {
             : "System defaults are set by your administrator. You can add your own custom categories."}
         </p>
       </DialogContent>
+
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={remove}
+        title="Remove category?"
+        description="This action cannot be undone."
+      />
     </Dialog>
   );
 }

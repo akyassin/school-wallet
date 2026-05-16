@@ -137,3 +137,14 @@ export const deleteTransactionFn = createServerFn({ method: 'POST' })
     const uid = requireWriter(data.token);
     await pool.query('DELETE FROM transactions WHERE id=$1 AND user_id=$2', [data.id, uid]);
   });
+
+export const deleteTransactionsBulkFn = createServerFn({ method: 'POST' })
+  .inputValidator((data: { token: string; ids: string[] }) => data)
+  .handler(async ({ data }) => {
+    const uid = requireWriter(data.token);
+    if (!data.ids.length) return;
+    await pool.query(
+      'DELETE FROM transactions WHERE id = ANY($1) AND user_id = $2',
+      [data.ids, uid],
+    );
+  });

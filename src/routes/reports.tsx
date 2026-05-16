@@ -2,6 +2,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { listTransactionsByRangeFn } from "@/api/transactions";
+import { isTokenExpired } from "@/lib/token-utils";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,11 @@ import {
 export const Route = createFileRoute("/reports")({
   beforeLoad: () => {
     if (typeof window === "undefined") return;
-    if (!localStorage.getItem("auth_token")) throw redirect({ to: "/login" });
+    const token = localStorage.getItem("auth_token");
+    const refresh = localStorage.getItem("auth_refresh_token");
+    if (!token || (isTokenExpired(token) && !refresh)) {
+      throw redirect({ to: "/login", search: { from: window.location.pathname } } as any);
+    }
   },
   component: Reports,
 });

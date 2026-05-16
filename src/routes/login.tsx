@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, redirect, Link } from "@tanstack/react-ro
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { loginFn, signUpFn, requestPasswordResetFn } from "@/api/auth";
+import { isTokenExpired } from "@/lib/token-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +12,16 @@ import schoolWalletLogo from "@/assets/school-wallet-logo.svg";
 import { Clock, Mail, ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
-  beforeLoad: () => {
+  validateSearch: (search: Record<string, unknown>) => ({
+    from: typeof search.from === "string" ? search.from : undefined,
+  }),
+  beforeLoad: ({ search }) => {
     if (typeof window === "undefined") return;
-    if (localStorage.getItem("auth_token")) throw redirect({ to: "/dashboard" });
+    const token = localStorage.getItem("auth_token");
+    if (token && !isTokenExpired(token)) {
+      const dest = search.from?.startsWith("/") ? search.from : "/dashboard";
+      throw redirect({ to: dest as any });
+    }
   },
   component: LoginPage,
 });
@@ -23,6 +31,7 @@ type Mode = "tabs" | "pending" | "forgot" | "forgotSent";
 function LoginPage() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
+  const search = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,9 +42,14 @@ function LoginPage() {
     setLoading(true);
     try {
       const result = await loginFn({ data: { email, password } });
-      signIn(result.token, result.user);
+      signIn(result.token, result.user, result.refreshToken);
       toast.success("Welcome back");
-      navigate({ to: "/dashboard" });
+      const dest = search.from?.startsWith("/") ? search.from : "/dashboard";
+      if (dest === "/dashboard") {
+        navigate({ to: "/dashboard" });
+      } else {
+        window.location.href = dest;
+      }
     } catch (err: any) {
       toast.error(err?.message ?? "Sign in failed");
     } finally {

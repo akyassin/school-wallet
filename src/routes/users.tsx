@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { isTokenExpired } from "@/lib/token-utils";
 import {
   listUsersFn,
   updateUserRoleFn,
@@ -36,7 +37,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/users")({
   beforeLoad: () => {
     if (typeof window === "undefined") return;
-    if (!localStorage.getItem("auth_token")) throw redirect({ to: "/login" });
+    const token = localStorage.getItem("auth_token");
+    const refresh = localStorage.getItem("auth_refresh_token");
+    if (!token || (isTokenExpired(token) && !refresh)) {
+      throw redirect({ to: "/login", search: { from: window.location.pathname } } as any);
+    }
   },
   component: UsersPage,
 });

@@ -2,6 +2,8 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { listBudgetsFn, upsertBudgetFn, deleteBudgetFn } from "@/api/budgets";
+import { isTokenExpired } from "@/lib/token-utils";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +19,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/budgets")({
   beforeLoad: () => {
     if (typeof window === "undefined") return;
-    if (!localStorage.getItem("auth_token")) throw redirect({ to: "/login" });
+    const token = localStorage.getItem("auth_token");
+    const refresh = localStorage.getItem("auth_refresh_token");
+    if (!token || (isTokenExpired(token) && !refresh)) {
+      throw redirect({ to: "/login", search: { from: window.location.pathname } } as any);
+    }
   },
   component: BudgetsPage,
 });
@@ -50,6 +56,8 @@ function BudgetsPage() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = async () => {
     const t = token ?? localStorage.getItem("auth_token");
@@ -69,10 +77,11 @@ function BudgetsPage() {
 
   useEffect(() => { load(); }, [token, period, year, month]);
 
-  const remove = async (id: string) => {
-    if (!confirm("Delete this budget?")) return;
+  const remove = async () => {
+    if (!deleteId) return;
     const t = token ?? localStorage.getItem("auth_token");
     if (!t) return;
+    const id = deleteId;
     try {
       await deleteBudgetFn({ data: { token: t, id } });
       toast.success("Budget deleted");
@@ -177,7 +186,7 @@ function BudgetsPage() {
                   </div>
                   <div className="divide-y divide-border">
                     {(list as Budget[]).map((b) => (
-                      <BudgetRow key={b.id} budget={b} isAdmin={isAdmin} onDelete={remove} />
+                      <BudgetRow key={b.id} budget={b} isAdmin={isAdmin} onDelete={(id) => { setDeleteId(id); setDeleteOpen(true); }} />
                     ))}
                   </div>
                 </div>
@@ -185,6 +194,14 @@ function BudgetsPage() {
           </div>
         )}
       </main>
+
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={remove}
+        title="Delete budget?"
+        description="This action cannot be undone."
+      />
     </div>
   );
 }
